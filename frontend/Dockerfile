@@ -4,16 +4,16 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 
 # 复制依赖文件
-COPY package*.json yarn.lock* ./
+COPY package.json yarn.lock* ./
 
-# 安装依赖
-RUN npm ci || yarn install --frozen-lockfile
+# 安装依赖（优先用 yarn）
+RUN yarn install --frozen-lockfile || npm install
 
 # 复制源代码和配置
 COPY . .
 
 # 构建生产版本
-RUN npm run build:prod
+RUN yarn build:prod || npm run build:prod
 
 # Production stage - 使用 nginx 托管静态文件
 FROM nginx:alpine

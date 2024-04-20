@@ -4,10 +4,10 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 
 # 复制依赖文件
-COPY package*.json ./
+COPY package.json yarn.lock* ./
 
-# 安装所有依赖（包括 devDependencies 用于构建）
-RUN npm ci
+# 安装所有依赖
+RUN yarn install --frozen-lockfile || npm install
 
 # 复制源代码
 COPY . .
@@ -18,18 +18,20 @@ FROM node:18-alpine
 WORKDIR /app
 
 # 复制依赖文件
-COPY package*.json ./
+COPY package.json yarn.lock* ./
 
 # 只安装生产依赖
-RUN npm ci --only=production && npm cache clean --force
+RUN yarn install --frozen-lockfile --production || npm install --only=production
+RUN yarn cache clean 2>/dev/null || npm cache clean --force
 
 # 复制源代码
 COPY --from=builder /app/server.js ./
 COPY --from=builder /app/src ./src
+COPY --from=builder /app/scripts ./scripts
 
 # 创建非 root 用户
 RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+  adduser -S nodejs -u 1001
 
 # 切换到非 root 用户
 USER nodejs
