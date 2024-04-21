@@ -6,7 +6,7 @@ version: '3.8'
 services:
   # 前端服务 - 使用预构建镜像
   frontend:
-    image: ghcr.io/YOUR_GITHUB_USERNAME/shortlink/frontend:latest # 替换 YOUR_GITHUB_USERNAME
+    image: ghcr.io/adrenjc/shortlink/frontend:latest # 替换 YOUR_GITHUB_USERNAME
     container_name: shortlink-frontend
     ports:
       - "3000:80"
@@ -19,7 +19,7 @@ services:
 
   # 后端 API 服务 - 使用预构建镜像
   backend:
-    image: ghcr.io/YOUR_GITHUB_USERNAME/shortlink/backend:latest # 替换 YOUR_GITHUB_USERNAME
+    image: ghcr.io/adrenjc/shortlink/backend:latest # 替换 YOUR_GITHUB_USERNAME
     container_name: shortlink-backend
     ports:
       - "5000:5000"
