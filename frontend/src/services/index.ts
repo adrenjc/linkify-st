@@ -37,13 +37,13 @@ const ENV_CONFIG = {
     apiUrl: 'http://localhost:5000/api', // 开发环境
   },
   test: {
-    apiUrl: 'https://www.onetop.vip/api', // 测试环境
+    apiUrl: '/api', // 测试环境 - 使用相对路径
   },
   pre: {
-    apiUrl: 'https://www.onetop.vip/api', // 预发环境
+    apiUrl: '/api', // 预发环境 - 使用相对路径
   },
   prod: {
-    apiUrl: 'https://www.onetop.vip/api', // 根据域名动态获取API地址
+    apiUrl: '/api', // 生产环境 - 使用相对路径，通过 Nginx 代理
   },
 };
 
