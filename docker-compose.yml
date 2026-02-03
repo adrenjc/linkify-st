@@ -64,7 +64,7 @@ services:
     ports:
       - "27018:27017" # 暴露端口给宿主机后端连接 (改为27018避免冲突)
     volumes:
-      - mongo_data:/data/db
+      - mongo_data_fix:/data/db
     networks:
       - app-network
     restart: unless-stopped
@@ -98,7 +98,7 @@ networks:
     driver: bridge
 
 volumes:
-  mongo_data:
+  mongo_data_fix:
     driver: local
   redis_data:
     driver: local
