@@ -4,16 +4,16 @@ module.exports = {
       name: "shortlink-backend",
       script: "./server.js",
 
-      // 进程配置 - 4核8G配置
-      instances: "max", // 自动使用所有CPU核心
-      exec_mode: "cluster",
+      // 进程配置
+      instances: 1,
+      exec_mode: "fork",
       watch: false,
-      max_memory_restart: "2G", // 使用 1G、1024M 这样的格式
+      max_memory_restart: "1G",
 
       // 环境变量
       env: {
         NODE_ENV: "production",
-        PORT: 8080,
+        PORT: 5000,
       },
 
       // 日志配置
@@ -22,34 +22,24 @@ module.exports = {
       log_date_format: "YYYY-MM-DD HH:mm:ss",
       merge_logs: true,
       log_type: "json",
-      max_logs: "5", // 可以保留更多日志
 
       // 重启策略
       exp_backoff_restart_delay: 100,
-      max_restarts: 10, // 增加重启次数容错
-      min_uptime: "30s",
+      max_restarts: 10,
+      min_uptime: "10s",
       restart_delay: 1000,
 
       // 优雅关闭配置
-      kill_timeout: 5000, // 更宽松的超时时间
-      wait_ready: true,
-      listen_timeout: 3000,
-      shutdown_with_message: true,
-
+      kill_timeout: 3000,
+      wait_ready: false,
+      
       // 性能监控
       status_interval: 60000,
-
-      // 集群配置 - 性能优化
+      
+      // Node 参数
       node_args: [
-        "--max-old-space-size=1536", // 更大的内存限制
-        "--optimize-for-size",
-        "--max-http-header-size=8192",
-        "--gc-interval=200", // 降低GC频率
+        "--max-old-space-size=1024", 
       ],
-
-      // 负载均衡
-      increment_var: "PORT",
-      instance_var: "INSTANCE_ID",
     },
   ],
 }
