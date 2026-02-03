@@ -2,7 +2,18 @@ const mongoose = require("mongoose")
 
 const linkSchema = new mongoose.Schema(
   {
-    longUrl: { type: String, required: true },
+    longUrls: [
+      {
+        type: String,
+        required: true,
+        validate: {
+          validator: function (v) {
+            return v && v.length > 0 // 确保数组不为空
+          },
+          message: "至少需要一个原始链接",
+        },
+      },
+    ],
     shortKey: { type: String, required: true },
     shortUrl: { type: String, required: true },
     customDomain: {
@@ -14,6 +25,15 @@ const linkSchema = new mongoose.Schema(
       required: true,
       ref: "User",
     },
+    domain: {
+      type: String,
+      required: true,
+    },
+    remark: {
+      type: String,
+      maxlength: 256,
+      default: "",
+    },
   },
   { timestamps: true } // 启用时间戳
 )
@@ -24,6 +44,9 @@ linkSchema.index({ shortKey: 1, customDomain: 1 }, { unique: true })
 // 添加必要的索引
 linkSchema.index({ createdBy: 1 })
 linkSchema.index({ createdAt: -1 })
+
+// 添加索引以提高查询性能
+linkSchema.index({ domain: 1 })
 
 const Link = mongoose.model("Link", linkSchema)
 

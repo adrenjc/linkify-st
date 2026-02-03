@@ -7,7 +7,6 @@
 <p align="center">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
   <img src="https://img.shields.io/badge/Self--Hosted-✓-brightgreen" alt="Self-Hosted">
-  <img src="https://img.shields.io/badge/Docker-Ready-blue?logo=docker" alt="Docker">
   <img src="https://img.shields.io/badge/React-18-blue?logo=react" alt="React">
   <img src="https://img.shields.io/badge/Node.js-18-green?logo=node.js" alt="Node.js">
 </p>
@@ -24,31 +23,7 @@
 | 🔐 **隐私安全** | 可能存在数据泄露风险 | ✅ 内网隔离，绝对安全 |
 | 💰 **费用** | 按量付费，成本不可控 | ✅ 一次部署，永久免费 |
 | 🎛 **定制化** | 功能受限，无法定制 | ✅ 开源代码，自由修改 |
-| 📊 **统计数据** | 基础统计或付费升级 | ✅ 完整审计日志，自由分析 |
-| 🌐 **自定义域名** | 需要付费或限制使用 | ✅ 无限制绑定自有域名 |
-
----
-
-## ⚡ 30 秒快速部署
-
-只需一台服务器 + Docker，即可拥有完整的短链接服务：
-
-```bash
-# 1. 克隆项目
-git clone <repository-url> && cd shortlink
-
-# 2. 配置环境变量
-cp .env.example .env
-# 修改 .env 中的 JWT_SECRET
-
-# 3. 一键启动
-docker compose up -d --build
-
-# 4. 初始化数据库
-docker compose exec backend node scripts/seed.js
-```
-
-🎉 访问 **http://your-server-ip** 即可使用！
+| 🌐 **自定义域名** | 需要付费或限制使用 | ✅ 无限制绑定自有域名 + 自动 SSL |
 
 ---
 
@@ -57,78 +32,262 @@ docker compose exec backend node scripts/seed.js
 | 功能 | 描述 |
 |------|------|
 | 🔗 **短链管理** | 创建、编辑、删除短链接，支持批量操作 |
-| 🌐 **多域名支持** | 绑定自有域名，支持 DNS 验证 |
-| 🔐 **RBAC 权限** | 企业级角色权限系统，支持 API 级别控制 |
+| 🌐 **多域名支持** | 绑定自有域名，自动申请 Let's Encrypt SSL 证书 |
+| 🔐 **RBAC 权限** | 企业级角色权限系统 |
 | 📊 **审计日志** | 完整操作记录，支持导出分析 |
 | 🚀 **高性能** | Redis 缓存加速，重定向延迟 < 10ms |
-| 🌍 **国际化** | 内置中/英文支持 |
 
 ---
 
-## 🛠 技术架构
+## 🛠 技术架构 (混合模式)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    🔒 私有化部署环境                          │
+│                    🔒 Hybrid 混合部署                         │
 ├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐   │
-│  │   Nginx     │────▶│   Backend   │────▶│  MongoDB    │   │
-│  │  (Frontend) │     │  (Express)  │     │  (数据存储)  │   │
-│  └─────────────┘     └──────┬──────┘     └─────────────┘   │
-│                             │                               │
-│                             ▼                               │
-│                       ┌───────────┐                         │
-│                       │   Redis   │                         │
-│                       │  (缓存层)  │                         │
-│                       └───────────┘                         │
+│                                                             │
+│  ┌─────────────┐                                            │
+│  │   Nginx     │  ◀──── 宿主机（反向代理 + SSL）              │
+│  └──────┬──────┘                                            │
+│         │                                                   │
+│         ├──────▶  Frontend (Docker, 端口 3000)               │
+│         │                                                   │
+│         └──────▶  Backend (PM2/宿主机, 端口 5000)             │
+│                        │                                    │
+│                        ▼                                    │
+│              ┌─────────────────────┐                        │
+│              │  MongoDB + Redis   │  ◀──── Docker 容器       │
+│              └─────────────────────┘                        │
+│                                                             │
 └─────────────────────────────────────────────────────────────┘
-          ↑ 所有组件均运行在你的服务器上，数据不外传
 ```
 
-| 层级 | 技术选型 |
-|------|---------|
-| **前端** | React 18 + TypeScript + Ant Design Pro + UmiJS 4 |
-| **后端** | Express.js + JWT 身份认证 |
-| **数据库** | MongoDB 文档存储 |
-| **缓存** | Redis 高性能缓存 |
-| **部署** | Docker + Docker Compose 容器化 |
+| 组件 | 运行位置 | 说明 |
+|------|---------|------|
+| **前端** | Docker 容器 | 从 GHCR 拉取镜像，无需在服务器构建 |
+| **后端** | 宿主机 PM2 | 需要宿主机权限执行 SSL 证书申请 |
+| **数据库** | Docker 容器 | MongoDB + Redis |
+| **反向代理** | 宿主机 Nginx | 统一入口 + SSL 终结 |
 
 ---
 
-## 📦 部署方式
-
-### 方式一：Docker Compose（推荐）
-
-```bash
-docker compose up -d --build
-```
-
-### 方式二：部署脚本
-
-```bash
-chmod +x deploy.sh
-./deploy.sh start    # 启动服务
-./deploy.sh stop     # 停止服务
-./deploy.sh restart  # 重启服务
-./deploy.sh logs     # 查看日志
-./deploy.sh seed     # 初始化数据库
-```
+## 📦 完整部署指南
 
 ### 环境要求
 
-- 服务器：1 核 1G 内存起步
-- 系统：Linux（推荐 Ubuntu 22.04）
-- 依赖：Docker 20.10+ / Docker Compose 2.0+
+- **服务器**: Linux (Ubuntu 22.04 推荐), 1 核 1G 内存起步
+- **域名**: 至少一个已解析到服务器 IP 的域名
+- **软件**: Docker, Node.js 18+, Nginx, PM2, acme.sh
 
 ---
 
-## 🔑 默认账号
+### 步骤 1：服务器基础环境安装
 
-| 角色 | 用户名 | 密码 |
-|------|--------|------|
-| 管理员 | admin | admin123 |
+```bash
+# 更新系统
+sudo apt update && sudo apt upgrade -y
 
-> ⚠️ **安全提示**：首次登录后请立即修改默认密码！
+# 1. 安装 Docker
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+# 重新登录 SSH 使 docker 组生效
+
+# 2. 安装 Node.js 18
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# 3. 安装 Nginx
+sudo apt install -y nginx
+
+# 4. 安装 PM2
+sudo npm install -g pm2
+
+# 5. 安装 acme.sh (SSL 证书)
+curl https://get.acme.sh | sh
+source ~/.bashrc
+
+# 验证安装
+docker --version && node --version && nginx -v && pm2 --version
+```
+
+---
+
+### 步骤 2：克隆项目并配置环境变量
+
+```bash
+# 克隆项目
+cd /var/www
+sudo mkdir -p shortlink && sudo chown $(whoami):$(whoami) shortlink
+git clone <your-repository-url> shortlink
+cd shortlink
+
+# 复制并编辑环境变量
+cp .env.example .env
+nano .env
+```
+
+**必须配置的 `.env` 变量：**
+
+```bash
+# GitHub 用户名（用于拉取前端镜像）
+GITHUB_USERNAME=your_github_username
+
+# JWT 密钥（生成：openssl rand -hex 32）
+JWT_SECRET=your_super_secure_jwt_secret
+```
+
+---
+
+### 步骤 3：启动 Docker 服务（前端 + 数据库）
+
+```bash
+# 登录 GitHub Container Registry（如果镜像是私有的）
+echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
+
+# 启动所有 Docker 服务
+docker compose up -d
+
+# 验证容器运行
+docker ps
+# 应看到：linkify-frontend, linkify-mongo, linkify-redis
+```
+
+> 💡 前端镜像由 GitHub Actions 自动构建并推送到 GHCR，服务器只需拉取即可，无需本地构建。
+
+---
+
+### 步骤 4：配置并启动后端
+
+```bash
+cd /var/www/shortlink/backend
+
+# 安装依赖
+npm install
+
+# 编辑生产环境配置
+# 从示例文件创建
+cp .env.example .env.production
+nano .env.production
+
+# 必须配置的项：
+# - JWT_SECRET：使用 openssl rand -hex 32 生成
+# - ACME_EMAIL：你的邮箱（用于SSL证书通知）
+# - DASHSCOPE_API_KEY：阿里云AI API Key（可选）
+
+# 使用 PM2 启动
+pm2 start ecosystem.config.js --env production
+
+# 设置开机自启
+pm2 startup
+pm2 save
+
+# 验证
+pm2 status
+curl http://localhost:5000/api/health
+```
+
+---
+
+### 步骤 5：配置 Nginx
+
+```bash
+# 备份默认配置
+sudo mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
+
+# 复制项目 Nginx 配置
+sudo cp /var/www/shortlink/backend/nginx/nginx.conf /etc/nginx/nginx.conf
+
+# 编辑配置，替换占位符
+sudo nano /etc/nginx/nginx.conf
+# 修改：
+# - YOUR_SERVER_IP → 你的服务器 IP
+# - your-domain.com → 你的域名
+# - www.your-domain.com → 完整域名
+
+# 创建必要目录
+sudo mkdir -p /etc/nginx/ssl /etc/nginx/ssl/domains /var/www/html
+
+# 测试并重启
+sudo nginx -t
+sudo systemctl enable nginx
+sudo systemctl restart nginx
+```
+
+---
+
+### 步骤 6：申请 SSL 证书
+
+```bash
+# 申请证书
+~/.acme.sh/acme.sh --issue -d your-domain.com -d www.your-domain.com -w /var/www/html
+
+# 安装证书
+~/.acme.sh/acme.sh --install-cert -d your-domain.com \
+  --key-file /etc/nginx/ssl/your-domain.com.key \
+  --fullchain-file /etc/nginx/ssl/your-domain.com.pem \
+  --reloadcmd "sudo systemctl reload nginx"
+```
+
+---
+
+### 步骤 7：初始化数据库
+
+```bash
+cd /var/www/shortlink/backend
+npm run seed:prod
+```
+
+---
+
+### 步骤 8：验证部署
+
+1. 访问 `https://www.your-domain.com`
+2. 使用默认账号登录：
+   - 用户名：`admin`
+   - 密码：`admin123`
+3. **立即修改默认密码！**
+
+---
+
+## 🔄 更新部署
+
+### 更新前端（Docker 镜像）
+
+```bash
+cd /var/www/shortlink
+docker compose pull frontend
+docker compose up -d frontend
+```
+
+### 更新后端
+
+```bash
+cd /var/www/shortlink
+git pull
+cd backend && npm install
+pm2 restart shortlink-backend
+```
+
+---
+
+## 🔧 日常维护
+
+```bash
+# 查看服务状态
+pm2 status
+docker ps
+
+# 查看日志
+pm2 logs shortlink-backend
+docker logs linkify-frontend
+
+# 数据库备份
+cd /var/www/shortlink/backend
+npm run backup
+
+# 设置自动备份
+npm run setup-backup
+```
 
 ---
 
@@ -136,51 +295,28 @@ chmod +x deploy.sh
 
 ```
 shortlink/
-├── frontend/           # 前端 (React + Ant Design Pro)
-│   ├── src/
-│   ├── docker/         # Nginx 配置
+├── frontend/              # 前端 (Docker 镜像)
 │   └── Dockerfile
-├── backend/            # 后端 API (Express + MongoDB)
+├── backend/               # 后端 (PM2 运行)
 │   ├── src/
-│   ├── scripts/        # 初始化脚本
-│   └── Dockerfile
-├── .github/workflows/  # GitHub Actions CI/CD
-├── docker-compose.yml  # Docker 编排配置
-├── deploy.sh           # 部署脚本
-└── .env.example        # 环境变量模板
+│   ├── nginx/nginx.conf   # Nginx 配置模板
+│   ├── ecosystem.config.js
+│   └── .env.production
+├── docker-compose.yml     # Docker 编排
+└── .env.example           # 环境变量模板
 ```
 
 ---
 
-## 📖 API 概览
+## 🛡 安全建议
 
-| 方法 | 路径 | 描述 |
-|------|------|------|
-| POST | `/api/login` | 用户登录 |
-| POST | `/api/links` | 创建短链接 |
-| GET | `/api/links` | 获取短链列表 |
-| GET | `/api/r/:key` | 短链重定向 |
-| GET | `/api/audit-logs` | 查询审计日志 |
-
----
-
-## 🗺 路线图
-
-- [x] 核心短链功能
-- [x] RBAC 权限系统
-- [x] Docker 一键部署
-- [ ] 点击统计分析面板
-- [ ] 二维码生成
-- [ ] API 密钥管理
-
----
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request！
+1. **修改默认密码**
+2. **设置防火墙**：只开放 80/443 端口
+3. **定期备份**：`npm run setup-backup`
+4. **保护配置文件**：`chmod 600 .env*`
 
 ---
 
 ## 📄 License
 
-[MIT License](LICENSE) - 自由使用、修改和分发
+[MIT License](LICENSE)

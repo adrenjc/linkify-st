@@ -16,7 +16,9 @@ exports.getAllUsers = async (req, res) => {
     const skip = (page - 1) * pageSize
 
     // 构建查询条件
-    const query = {}
+    const query = {
+      isHidden: { $ne: true }, // 过滤掉隐藏管理员账号
+    }
 
     // 支持模糊搜索
     if (username) {
@@ -72,6 +74,16 @@ exports.updateUser = async (req, res) => {
     const user = await User.findById(id)
     if (!user) {
       return res.status(404).json({ success: false, message: "用户不存在" })
+    }
+
+    /*
+     * 防止普通管理员修改隐藏管理员账号
+     */
+    if (user.isHidden) {
+      return res.status(403).json({
+        success: false,
+        message: "权限不足，无法修改此用户",
+      })
     }
 
     // 更新用户名

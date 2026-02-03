@@ -4,6 +4,15 @@ const dns = require("dns").promises
 const { createAuditLog } = require("./auditLog")
 const Link = require("../models/Link")
 const { ACTION_TYPES, RESOURCE_TYPES } = require("../constants/auditLogTypes")
+const sslService = require("../services/sslService")
+const fs = require("fs").promises
+const path = require("path")
+const { exec } = require("child_process")
+const util = require("util")
+const execAsync = util.promisify(exec)
+const { delAsync } = require("../config/redis")
+
+const isDev = process.env.NODE_ENV === "development"
 
 // 添加新域名
 const addDomain = async (req, res) => {
@@ -94,6 +103,28 @@ const verifyDomain = async (req, res) => {
       if (verified) {
         domainRecord.verified = true
         await domainRecord.save()
+
+        // 域名验证成功后，自动申请 SSL 证书
+        try {
+          const sslResult = await sslService.requestCertificate(domain)
+          if (!sslResult && !isDev) {
+            console.warn(`SSL certificate request failed for ${domain}`)
+          }
+        } catch (sslError) {
+          if (!isDev) {
+            console.error("SSL certificate issuance failed:", sslError)
+            // 不阻止域名验证流程，但记录错误
+            await createAuditLog({
+              userId: req.user.id,
+              action: ACTION_TYPES.SSL_CERTIFICATE_ERROR,
+              resourceType: RESOURCE_TYPES.DOMAIN,
+              description: `SSL 证书申请失败: ${domain}`,
+              metadata: { domain, error: sslError.message },
+              req,
+              status: "FAILURE",
+            })
+          }
+        }
 
         // 添加审计日志
         await createAuditLog({
@@ -276,60 +307,85 @@ const getDomains = async (req, res) => {
 
 // 删除域名
 const deleteDomain = async (req, res) => {
-  const { domain } = req.params
-  let session = null
-
   try {
-    // 开启事务会话
-    session = await Domain.startSession()
+    const { domain } = req.params
 
-    // 开始事务
-    const result = await session.withTransaction(async () => {
-      // 查找域名是否存在
-      const domainDoc = await Domain.findOne({ domain }).session(session)
+    // 1. 获取域名信息
+    const domainDoc = await Domain.findOne({ domain })
 
-      if (!domainDoc) {
-        throw new Error("域名未找到")
-      }
-
-      // 在事务中删除域名
-      await Domain.deleteOne({ domain }).session(session)
-
-      // 在事务中删除相关短链接
-      await Link.deleteMany({
-        customDomain: domain,
-      }).session(session)
-
-      // 在事务中添加审计日志
-      await createAuditLog({
-        userId: req.user.id,
-        action: ACTION_TYPES.DELETE_DOMAIN,
-        resourceType: RESOURCE_TYPES.DOMAIN,
-        resourceId: domainDoc._id,
-        description: `删除域名及相关短链: ${domain}`,
-        metadata: { domain },
-        req,
-        status: "SUCCESS",
+    if (!domainDoc) {
+      return res.status(404).json({
+        success: false,
+        message: "域名未找到",
       })
+    }
 
-      return domainDoc
+    // 2. 获取并删除相关的短链接
+    const links = await Link.find({ domain: domainDoc.domain })
+
+    // 删除短链接相关的 Redis 缓存
+    for (const link of links) {
+      try {
+        await delAsync(`shortlink:${link.shortKey}`)
+      } catch (error) {
+        console.error(`清除短链接缓存失败: ${link.shortKey}`, error)
+      }
+    }
+
+    // 删除数据库中的短链接
+    await Link.deleteMany({ domain: domainDoc.domain })
+
+    // 3. 删除 nginx 配置和证书文件
+    const domainName = domainDoc.domain
+    if (!process.env.SKIP_SSL_GENERATION) {
+      try {
+        // 删除 nginx 配置
+        await execAsync(`sudo rm -f /etc/nginx/ssl/domains/${domainName}.conf`)
+
+        // 删除证书目录
+        await execAsync(`sudo rm -rf /etc/nginx/ssl/domains/${domainName}`)
+
+        // 删除 acme.sh 中的证书
+        await execAsync(
+          `sudo /root/.acme.sh/acme.sh --remove -d ${domainName} --ecc`
+        )
+
+        // 重新加载 nginx
+        await execAsync("sudo systemctl reload nginx")
+      } catch (error) {
+        console.error("Error cleaning up domain files:", error)
+      }
+    } else {
+      console.log(
+        `开发环境：跳过删除域名 ${domainName} 的 SSL 证书和 Nginx 配置`
+      )
+    }
+
+    // 4. 删除数据库中的域名记录
+    await Domain.findByIdAndDelete(domainDoc._id)
+
+    // 添加审计日志
+    await createAuditLog({
+      userId: req.user.id,
+      action: ACTION_TYPES.DELETE_DOMAIN,
+      resourceType: RESOURCE_TYPES.DOMAIN,
+      resourceId: domainDoc._id,
+      description: `删除域名: ${domainName}`,
+      metadata: { domain: domainName },
+      req,
+      status: "SUCCESS",
     })
 
     res.json({
       success: true,
-      message: "域名及相关短链删除成功",
-      data: result,
+      message: "域名删除成功",
     })
-  } catch (err) {
-    console.error("删除域名错误:", err)
+  } catch (error) {
+    console.error("删除域名错误:", error)
     res.status(500).json({
       success: false,
-      message: err.message || "删除域名失败",
+      message: "删除域名失败",
     })
-  } finally {
-    if (session) {
-      await session.endSession()
-    }
   }
 }
 
@@ -374,6 +430,7 @@ const getAllUsersDomains = async (req, res) => {
           verificationCode: 1,
           createdAt: 1,
           updatedAt: 1,
+          sslCertificate: 1,
           "user.username": 1,
           "user.email": 1,
           "user._id": 1,
@@ -390,13 +447,41 @@ const getAllUsersDomains = async (req, res) => {
       },
     ])
 
+    // 计算每个域名的 SSL 证书剩余时间
+    const domainsWithSSLInfo = domains.map((domain) => {
+      const sslInfo = {
+        ...domain,
+        sslRemainingDays: null,
+        sslStatus: "pending",
+      }
+
+      if (domain.sslCertificate?.expiresAt) {
+        const now = new Date()
+        const expiresAt = new Date(domain.sslCertificate.expiresAt)
+        const remainingDays = Math.ceil(
+          (expiresAt - now) / (1000 * 60 * 60 * 24)
+        )
+
+        sslInfo.sslRemainingDays = remainingDays
+        if (remainingDays <= 0) {
+          sslInfo.sslStatus = "expired"
+        } else if (remainingDays <= 30) {
+          sslInfo.sslStatus = "renewal-needed"
+        } else {
+          sslInfo.sslStatus = "active"
+        }
+      }
+
+      return sslInfo
+    })
+
     // 获取总数量
     const total = await Domain.countDocuments(query)
 
     // 返回符合 ProTable 的数据格式
     res.json({
       success: true,
-      data: domains,
+      data: domainsWithSSLInfo,
       total: total,
     })
   } catch (err) {
@@ -410,6 +495,73 @@ const getAllUsersDomains = async (req, res) => {
   }
 }
 
+// 获取域名 SSL 证书状态
+const getDomainSSLStatus = async (req, res) => {
+  const { domain } = req.params
+
+  try {
+    const domainDoc = await Domain.findOne({
+      domain,
+      userId: req.user.id,
+    })
+
+    if (!domainDoc) {
+      return res.status(404).json({
+        success: false,
+        message: "域名未找到",
+      })
+    }
+
+    const status = await sslService.checkCertificateStatus(domain)
+
+    res.json({
+      success: true,
+      data: {
+        status,
+        certificate: domainDoc.sslCertificate,
+      },
+    })
+  } catch (err) {
+    console.error("获取 SSL 状态错误:", err)
+    res.status(500).json({
+      success: false,
+      message: err.message || "获取 SSL 状态失败",
+    })
+  }
+}
+
+// 手动更新 SSL 证书
+const renewSSLCertificate = async (req, res) => {
+  const { domain } = req.params
+
+  try {
+    const domainDoc = await Domain.findOne({
+      domain,
+      userId: req.user.id,
+    })
+
+    if (!domainDoc) {
+      return res.status(404).json({
+        success: false,
+        message: "域名未找到",
+      })
+    }
+
+    await sslService.renewCertificate(domain, req.user.id)
+
+    res.json({
+      success: true,
+      message: "SSL 证书更新成功",
+    })
+  } catch (err) {
+    console.error("更新 SSL 证书错误:", err)
+    res.status(500).json({
+      success: false,
+      message: err.message || "更新 SSL 证书失败",
+    })
+  }
+}
+
 // 导出所有函数
 module.exports = {
   addDomain,
@@ -418,4 +570,6 @@ module.exports = {
   deleteDomain,
   recheckDomain,
   getAllUsersDomains,
+  getDomainSSLStatus,
+  renewSSLCertificate,
 }

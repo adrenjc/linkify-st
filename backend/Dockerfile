@@ -1,47 +1,39 @@
-# Build stage
 FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# 复制依赖文件
-COPY package.json yarn.lock* ./
+# Copy package files
+COPY package*.json ./
 
-# 安装所有依赖
-RUN yarn install --frozen-lockfile || npm install
+# Install dependencies (including devDependencies for build if needed, though pure node backend might not need build step if no TS/Babel)
+# Using ci for clean install
+RUN npm ci
 
-# 复制源代码
+# Copy source code
 COPY . .
 
-# Production stage
-FROM node:18-alpine
+# Prune dev dependencies
+RUN npm prune --production
+
+# ---
+
+FROM keymetrics/pm2:18-alpine
 
 WORKDIR /app
 
-# 复制依赖文件
-COPY package.json yarn.lock* ./
+# Copy from builder
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app .
 
-# 只安装生产依赖
-RUN yarn install --frozen-lockfile --production || npm install --only=production
-RUN yarn cache clean 2>/dev/null || npm cache clean --force
+# Create logs directory
+RUN mkdir -p /logs
 
-# 复制源代码
-COPY --from=builder /app/server.js ./
-COPY --from=builder /app/src ./src
-COPY --from=builder /app/scripts ./scripts
-
-# 创建非 root 用户
-RUN addgroup -g 1001 -S nodejs && \
-  adduser -S nodejs -u 1001
-
-# 切换到非 root 用户
-USER nodejs
-
-# 暴露端口
+# Expose port (ecosystem.config.js uses 8080 by default in env, but compose expects 5000? Let's check deploy.sh/compose)
+# deploy.sh says "后端 API 地址: http://localhost:5000" and upstream is 5000. 
+# ecosystem.config.js sets PORT: 8080. This is a mismatch.
+# I will override PORT in Docker ENV to 5000 to match expectation.
+ENV PORT=5000
 EXPOSE 5000
 
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:5000/api/user || exit 1
-
-# 启动命令
-CMD ["node", "server.js"]
+# Start with pm2-runtime
+CMD ["pm2-runtime", "start", "ecosystem.config.js"]

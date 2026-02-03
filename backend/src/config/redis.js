@@ -110,6 +110,9 @@ const redisClient = createClient()
 const getAsync = promisify(redisClient.get).bind(redisClient)
 const setAsync = promisify(redisClient.set).bind(redisClient)
 const delAsync = promisify(redisClient.del).bind(redisClient)
+const hgetAsyncRaw = promisify(redisClient.hget).bind(redisClient)
+const hgetallAsyncRaw = promisify(redisClient.hgetall).bind(redisClient)
+const evalAsyncRaw = promisify(redisClient.eval).bind(redisClient)
 
 /**
  * 安全的get方法
@@ -156,9 +159,61 @@ const safeSetAsync = async (key, value, ...args) => {
   }
 }
 
+/**
+ * 安全的hget方法
+ */
+const safeHGetAsync = async (key, field) => {
+  const client = getClient()
+  const startTime = Date.now()
+
+  try {
+    const result = await hgetAsyncRaw.call(client, key, field)
+    const duration = Date.now() - startTime
+
+    if (duration > 50) {
+      console.warn(`Redis慢查询 - HGET ${key}[${field}]: ${duration}ms`)
+    }
+
+    return result
+  } catch (error) {
+    console.error("Redis HGET 失败:", error)
+    return null
+  }
+}
+
+/**
+ * 安全的hgetall方法
+ */
+const safeHGetAllAsync = async (key) => {
+  const client = getClient()
+  try {
+    return await hgetallAsyncRaw.call(client, key)
+  } catch (error) {
+    console.error("Redis HGETALL 失败:", error)
+    return null
+  }
+}
+
+/**
+ * 安全的eval方法
+ */
+const safeEvalAsync = async (...args) => {
+  const client = getClient()
+  try {
+    // 与 node-redis v3 兼容：eval(script, numKeys, key1, ..., arg1, ...)
+    return await evalAsyncRaw.call(client, ...args)
+  } catch (error) {
+    console.error("Redis EVAL 失败:", error)
+    throw error
+  }
+}
+
 module.exports = {
   client: redisClient,
   getAsync: safeGetAsync,
   setAsync: safeSetAsync,
   delAsync,
+  hgetAsync: safeHGetAsync,
+  hgetallAsync: safeHGetAllAsync,
+  evalAsync: safeEvalAsync,
 }

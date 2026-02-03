@@ -58,6 +58,8 @@ const auditLogSchema = new mongoose.Schema({
 auditLogSchema.index({ userId: 1, createdAt: -1 })
 auditLogSchema.index({ action: 1, createdAt: -1 })
 auditLogSchema.index({ resourceType: 1, createdAt: -1 })
+auditLogSchema.index({ resourceId: 1, action: 1, "metadata.isBot": 1, createdAt: -1 })
+auditLogSchema.index({ resourceId: 1, "metadata.selectedUrl": 1 })
 auditLogSchema.index({ description: "text" })
 
 module.exports = mongoose.model("AuditLog", auditLogSchema)
