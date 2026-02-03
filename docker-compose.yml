@@ -60,9 +60,7 @@ services:
   # MongoDB 数据库
   mongo:
     image: mongo:latest
-    container_name: linkify-mongo
-    ports:
-      - "27017:27017" # 暴露端口给宿主机后端连接
+    container_name: linkify-mongo - "27018:27017" # 暴露端口给宿主机后端连接 (改为27018避免冲突)
     volumes:
       - mongo_data:/data/db
     networks:
