@@ -1,7 +1,9 @@
 services:
   # 前端服务 - 纯静态文件服务
   frontend:
-    image: ghcr.io/${GITHUB_USERNAME}/linkify-st/frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: linkify-frontend
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
