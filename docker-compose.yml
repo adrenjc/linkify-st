@@ -80,7 +80,7 @@ services:
     container_name: linkify-redis
     command: redis-server --appendonly yes
     ports:
-      - "6379:6379" # 暴露端口给宿主机后端连接
+      - "6380:6379" # 暴露端口给宿主机后端连接 (改为6380避免冲突)
     volumes:
       - redis_data:/data
     networks:
