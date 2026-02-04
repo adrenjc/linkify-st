@@ -309,7 +309,7 @@ export default () => {
               </li>
               <li>
                 <strong>记录值：</strong>
-                <Paragraph copyable>38.95.121.181</Paragraph>
+                <Paragraph copyable>{process.env.REACT_APP_SERVER_IP || '192.238.206.238'}</Paragraph>
               </li>
               <li>
                 <strong>TTL:</strong> 600
