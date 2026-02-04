@@ -2,212 +2,16 @@ import { AUTH_TOKEN_KEY } from '@/constants/auth';
 import { currentUser, login } from '@/services/login/';
 import { Helmet, history, useModel } from '@umijs/max';
 import { message, Tabs } from 'antd';
-import { createStyles } from 'antd-style';
 import React, { useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import Settings from '../../../../config/defaultSettings';
 
-const useStyles = createStyles(() => ({
-  container: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    // background: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
-    padding: '20px',
-  },
-  loginCard: {
-    width: '100%',
-    maxWidth: '400px',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: '24px',
-    padding: '40px',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(114, 46, 209, 0.1)',
-    boxShadow: '0 20px 40px rgba(114, 46, 209, 0.08)',
-    animation: 'fadeIn 0.6s ease-out',
-
-    '@media screen and (max-width: 576px)': {
-      padding: '30px 20px',
-      borderRadius: '20px',
-    },
-  },
-  title: {
-    fontSize: '32px',
-    fontWeight: 700,
-    color: '#722ED1',
-    textAlign: 'center',
-    marginBottom: '8px',
-    letterSpacing: '0.5px',
-  },
-  subtitle: {
-    fontSize: '16px',
-    color: '#8c8c8c',
-    textAlign: 'center',
-    marginBottom: '40px',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-  },
-  inputGroup: {
-    position: 'relative',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-  },
-  label: {
-    color: '#595959',
-    fontSize: '14px',
-    marginLeft: '4px',
-    fontWeight: 500,
-  },
-  input: {
-    width: '100%',
-    padding: '12px 16px',
-    backgroundColor: '#fafafa',
-    border: '2px solid transparent',
-    borderRadius: '12px',
-    color: '#262626',
-    fontSize: '15px',
-    transition: 'all 0.3s ease',
-    outline: 'none',
-
-    '&:hover': {
-      backgroundColor: '#f5f5f5',
-      borderColor: 'rgba(114, 46, 209, 0.1)',
-    },
-
-    '&:focus': {
-      backgroundColor: '#ffffff',
-      borderColor: '#722ED1',
-      boxShadow: '0 0 0 3px rgba(114, 46, 209, 0.1)',
-    },
-
-    '&::placeholder': {
-      color: '#bfbfbf',
-    },
-  },
-  error: {
-    backgroundColor: '#fff1f0',
-    color: '#ff4d4f',
-    padding: '12px 16px',
-    borderRadius: '12px',
-    fontSize: '14px',
-    marginBottom: '20px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    border: '1px solid #ffccc7',
-
-    '&::before': {
-      content: '"⚠"',
-      fontSize: '16px',
-      color: '#ff4d4f',
-    },
-  },
-  button: {
-    width: '100%',
-    padding: '14px',
-    backgroundColor: '#722ED1',
-    border: 'none',
-    borderRadius: '12px',
-    color: '#ffffff',
-    fontSize: '16px',
-    fontWeight: 600,
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    marginTop: '10px',
-    position: 'relative',
-    overflow: 'hidden',
-
-    '&:hover': {
-      backgroundColor: '#8546d6',
-      transform: 'translateY(-2px)',
-      boxShadow: '0 6px 20px rgba(114, 46, 209, 0.25)',
-    },
-
-    '&:active': {
-      backgroundColor: '#642ab5',
-      transform: 'translateY(0)',
-      boxShadow: '0 3px 10px rgba(114, 46, 209, 0.2)',
-    },
-
-    '&:disabled': {
-      backgroundColor: '#d9d9d9',
-      opacity: 0.7,
-      cursor: 'not-allowed',
-      transform: 'none',
-      boxShadow: 'none',
-    },
-  },
-  '@keyframes fadeIn': {
-    from: {
-      opacity: 0,
-      transform: 'translateY(20px)',
-    },
-    to: {
-      opacity: 1,
-      transform: 'translateY(0)',
-    },
-  },
-  tabs: {
-    marginBottom: '32px',
-    '.ant-tabs-nav': {
-      marginBottom: '32px',
-      '&::before': {
-        border: 'none',
-      },
-    },
-    '.ant-tabs-tab': {
-      padding: '12px 0',
-      fontSize: '16px',
-      transition: 'all 0.3s ease',
-
-      '&:hover': {
-        color: '#8546d6',
-      },
-
-      '&.ant-tabs-tab-active .ant-tabs-tab-btn': {
-        color: '#722ED1',
-        fontWeight: 600,
-      },
-    },
-    '.ant-tabs-ink-bar': {
-      backgroundColor: '#722ED1',
-      height: '3px',
-      borderRadius: '3px',
-    },
-  },
-  registerForm: {
-    '.ant-form-item': {
-      marginBottom: '24px',
-    },
-  },
-  passwordStrength: {
-    marginTop: '4px',
-    fontSize: '12px',
-    '&.weak': { color: '#ff4d4f' },
-    '&.medium': { color: '#faad14' },
-    '&.strong': { color: '#52c41a' },
-  },
-}));
-
 const Login: React.FC = () => {
   const [activeTab, setActiveTab] = useState('login');
-  const [userLoginState, setUserLoginState] = useState<API.LoginResult>({});
   const { setInitialState } = useModel('@@initialState');
-  const { styles } = useStyles();
   const [loading, setLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
-  // const [registerForm, setRegisterForm] = useState({
-  //   username: '',
-  //   password: '',
-  //   confirmPassword: '',
-  // });
 
-  // 修改 useEffect 中的 token 获取
   useEffect(() => {
     const checkToken = async () => {
       const token = localStorage.getItem(AUTH_TOKEN_KEY);
@@ -221,12 +25,9 @@ const Login: React.FC = () => {
                 currentUser: userInfo.data,
               }));
             });
-
             const urlParams = new URL(window.location.href).searchParams;
             const redirect = urlParams.get('redirect');
-
             history.push(redirect || '/');
-            message.success('已自动登录');
           }
         } catch (error: any) {
           if (error.response?.status === 401) {
@@ -235,13 +36,11 @@ const Login: React.FC = () => {
         }
       }
     };
-
     checkToken();
   }, [setInitialState]);
 
   const fetchUserInfo = async () => {
     const userInfo = await currentUser();
-    console.log(userInfo, '看一下用户信息');
     if (userInfo) {
       flushSync(() => {
         setInitialState((s) => ({
@@ -258,194 +57,94 @@ const Login: React.FC = () => {
     try {
       const result = await login(loginForm);
       if (result.token) {
-        message.success('登录成功！');
+        message.success('Welcome back!');
         await fetchUserInfo();
         const urlParams = new URL(window.location.href).searchParams;
         history.push(urlParams.get('redirect') || '/');
         return;
       }
-      setUserLoginState(result);
+    } catch (error) {
+      // Error handled by request interceptor usually, or we show message here
     } finally {
       setLoading(false);
     }
   };
 
-  // const handleRegister = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-
-  //   // 表单验证
-  //   if (!registerForm.username || !registerForm.password) {
-  //     message.error('用户名和密码不能为空！');
-  //     return;
-  //   }
-
-  //   if (registerForm.username.length < 3) {
-  //     message.error('用户名至少需要3个字符！');
-  //     return;
-  //   }
-
-  //   if (registerForm.password.length < 6) {
-  //     message.error('密码至少需要6个字符！');
-  //     return;
-  //   }
-
-  //   if (registerForm.password !== registerForm.confirmPassword) {
-  //     message.error('两次输入的密码不一致！');
-  //     return;
-  //   }
-
-  //   setLoading(true);
-  //   try {
-  //     const result = await register({
-  //       username: registerForm.username,
-  //       password: registerForm.password,
-  //     });
-
-  //     if (result.token) {
-  //       localStorage.setItem(AUTH_TOKEN_KEY, result.token); // 使用常量
-  //       message.success('注册成功！');
-
-  //       await fetchUserInfo();
-
-  //       const urlParams = new URL(window.location.href).searchParams;
-  //       history.push(urlParams.get('redirect') || '/');
-  //     } else {
-  //       message.success('注册成功，请登录！');
-  //       setActiveTab('login');
-  //       setLoginForm({
-  //         username: registerForm.username,
-  //         password: registerForm.password,
-  //       });
-  //     }
-
-  //     setRegisterForm({
-  //       username: '',
-  //       password: '',
-  //       confirmPassword: '',
-  //     });
-  //   } catch (error: any) {
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  const LoginForm = (
-    <form className={styles.form} onSubmit={handleLogin}>
-      <div className={styles.inputGroup}>
-        <label className={styles.label}>用户名</label>
-        <input
-          type="text"
-          name="username"
-          className={styles.input}
-          placeholder="请输入用户名"
-          value={loginForm.username}
-          onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-          required
-        />
-      </div>
-
-      <div className={styles.inputGroup}>
-        <label className={styles.label}>密码</label>
-        <input
-          type="password"
-          name="password"
-          className={styles.input}
-          placeholder="请输入密码"
-          value={loginForm.password}
-          onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-          required
-        />
-      </div>
-
-      <button type="submit" className={styles.button} disabled={loading}>
-        {loading ? '登录中...' : '登录'}
-      </button>
-    </form>
-  );
-
-  // const RegisterForm = (
-  //   <form className={`${styles.form} ${styles.registerForm}`} onSubmit={handleRegister}>
-  //     <div className={styles.inputGroup}>
-  //       <label className={styles.label}>用户名</label>
-  //       <input
-  //         type="text"
-  //         name="username"
-  //         className={styles.input}
-  //         placeholder="请输入用户名（至少3个字符）"
-  //         value={registerForm.username}
-  //         onChange={(e) => setRegisterForm({ ...registerForm, username: e.target.value })}
-  //         required
-  //         minLength={3}
-  //       />
-  //     </div>
-
-  //     <div className={styles.inputGroup}>
-  //       <label className={styles.label}>密码</label>
-  //       <input
-  //         type="password"
-  //         name="password"
-  //         className={styles.input}
-  //         placeholder="请输入密码（至少6个字符）"
-  //         value={registerForm.password}
-  //         onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
-  //         required
-  //         minLength={6}
-  //       />
-  //     </div>
-
-  //     <div className={styles.inputGroup}>
-  //       <label className={styles.label}>确认密码</label>
-  //       <input
-  //         type="password"
-  //         name="confirmPassword"
-  //         className={styles.input}
-  //         placeholder="请再次输入密码"
-  //         value={registerForm.confirmPassword}
-  //         onChange={(e) => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })}
-  //         required
-  //       />
-  //     </div>
-
-  //     <button type="submit" className={styles.button} disabled={loading}>
-  //       {loading ? '注册中...' : '注册'}
-  //     </button>
-  //   </form>
-  // );
-
   return (
-    <div className={styles.container}>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 relative overflow-hidden">
+        {/* Background Decorative Elements */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+            <div className="absolute -top-[30%] -left-[10%] w-[70%] h-[70%] rounded-full bg-purple-200/30 blur-[120px]" />
+            <div className="absolute top-[40%] -right-[10%] w-[60%] h-[60%] rounded-full bg-blue-200/30 blur-[100px]" />
+        </div>
+
       <Helmet>
         <title>
-          {activeTab === 'login' ? '登录' : '注册'} - {Settings.title}
+          Login - {Settings.title}
         </title>
       </Helmet>
 
-      <div className={styles.loginCard}>
+      <div className="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 p-8 z-10 transition-all duration-500 hover:shadow-[0_8px_40px_rgb(0,0,0,0.08)]">
+        <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-800 tracking-tight mb-2">Linkify</h1>
+            <p className="text-gray-500 text-sm">Enterprise Link Management Platform</p>
+        </div>
+
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
           centered
-          className={styles.tabs}
+          className="mb-6 custom-tabs"
           items={[
             {
               key: 'login',
-              label: '账号登录',
+              label: 'Sign In',
               children: (
-                <>
-                  {userLoginState.status === 'error' && (
-                    <div className={styles.error}>账户或密码错误，请重试</div>
-                  )}
-                  {LoginForm}
-                </>
+                <form className="flex flex-col gap-5 mt-4" onSubmit={handleLogin}>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-700 ml-1">Username</label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-sm focus:bg-white focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none transition-all duration-200 placeholder:text-gray-400"
+                      placeholder="Enter your username"
+                      value={loginForm.username}
+                      onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-700 ml-1">Password</label>
+                    <input
+                      type="password"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-sm focus:bg-white focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none transition-all duration-200 placeholder:text-gray-400"
+                      placeholder="Enter your password"
+                      value={loginForm.password}
+                      onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-xl text-sm shadow-lg shadow-purple-500/20 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                  >
+                    {loading ? 'Authenticating...' : 'Sign In'}
+                  </button>
+                  
+                  <div className="text-center mt-4">
+                      <span className="text-xs text-gray-400">Secure Enterprise Access</span>
+                  </div>
+                </form>
               ),
             },
-            // {
-            //   key: 'register',
-            //   label: '注册账号',
-            //   children: RegisterForm,
-            // },
           ]}
         />
+      </div>
+      
+      <div className="absolute bottom-6 text-xs text-gray-400 font-light">
+        &copy; {new Date().getFullYear()} Linkify Inc. All rights reserved.
       </div>
     </div>
   );

@@ -7,20 +7,31 @@ const Settings: ProLayoutProps & {
   pwa?: boolean;
 } = {
   navTheme: 'light',
-  // 拂晓蓝
   colorPrimary: '#722ED1',
   layout: 'mix',
   contentWidth: 'Fluid',
-  fixedHeader: false,
+  fixedHeader: true,
   fixSiderbar: true,
   colorWeak: false,
-  title: 'SparkLink',
-  pwa: true,
-  logo: false,
+  title: 'Linkify',
+  pwa: false,
+  logo: 'https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg', // Placeholder, will replace later or generic icon
   iconfontUrl: '',
   token: {
-    // 参见ts声明，demo 见文档，通过token 修改样式
-    //https://procomponents.ant.design/components/layout#%E9%80%9A%E8%BF%87-token-%E4%BF%AE%E6%94%B9%E6%A0%B7%E5%BC%8F
+    // Premium theme tokens
+    pageContainer: {
+      paddingBlockPageContainerContent: 24,
+      paddingInlinePageContainerContent: 24,
+    },
+    sider: {
+      colorMenuBackground: '#fff',
+      colorTextMenu: '#5e6c84',
+      colorTextMenuSelected: '#722ED1',
+      colorBgMenuItemSelected: '#F9F0FF',
+    },
+    header: {
+      colorBgHeader: 'rgba(255, 255, 255, 0.8)', // Glassmorphism effect preparation
+    }
   },
 };
 
