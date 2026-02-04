@@ -25,14 +25,8 @@ services:
     container_name: linkify-backend
     ports:
       - "5000:5000"
-    environment:
-      - NODE_ENV=production
-      - MONGO_URI=mongodb://mongo:27017/shortlink
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - OPENAI_API_KEY=sk-placeholder-key-for-startup # 防止启动崩溃
-      # 挂载 .env 中的密钥
-      - JWT_SECRET=${JWT_SECRET}
+    env_file:
+      - .env
     depends_on:
       - mongo
       - redis
