@@ -23,8 +23,38 @@ class SSLService {
 
     try {
       await fs.mkdir(this.nginxConfigDir, { recursive: true })
+      // 启动时自动修复缺失的配置文件
+      this.processVerifiedDomains().catch(console.error)
     } catch (error) {
       console.error("Failed to create Nginx config directory:", error)
+    }
+  }
+
+  async processVerifiedDomains() {
+    try {
+      const domains = await Domain.find({ verified: true })
+      for (const domainDoc of domains) {
+        const domain = domainDoc.domain
+        const configPath = path.join(this.nginxConfigDir, `${domain}.conf`)
+        
+        try {
+          await fs.access(configPath)
+        } catch (e) {
+          console.log(`正在为已验证域名 ${domain} 补全缺失的 Nginx 配置...`)
+          // 如果证书已存在，直接生成 HTTPS 配置，否则生成临时配置
+          try {
+            await fs.access(`/etc/letsencrypt/live/${domain}/fullchain.pem`)
+            const config = this.generateNginxConfig(domain)
+            await fs.writeFile(configPath, config)
+          } catch (certError) {
+            // 证书也不存在，走申请流程
+            this.requestCertificate(domain).catch(console.error)
+          }
+        }
+      }
+      await execAsync("docker exec linkify-nginx nginx -s reload").catch(() => {})
+    } catch (error) {
+      console.error("Error processing verified domains:", error)
     }
   }
 
