@@ -177,6 +177,5 @@ export default defineConfig({
     strategy: 'normal',
   },
   esbuildMinifyIIFE: true,
-  tailwindcss: {},
   requestRecord: {},
 });
