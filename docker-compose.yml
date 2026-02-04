@@ -35,21 +35,39 @@ services:
     restart: unless-stopped
     volumes:
       - ./backend/logs:/logs # 挂载日志
+      - /var/run/docker.sock:/var/run/docker.sock # 挂载 docker socket 用于重载 nginx
+      - /etc/letsencrypt:/etc/letsencrypt # 绑定宿主机证书目录
+      - domain_configs:/etc/nginx/conf.d/domains # 动态域名配置
 
   # Nginx 反向代理 (内部路由)
   nginx:
     image: nginx:stable-alpine
     container_name: linkify-nginx
     ports:
-      - "8082:80"
+      - "80:80"
+      - "443:443"
     volumes:
       - ./linkify-nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro # 绑定宿主机证书目录
+      - /var/www/certbot:/var/www/certbot:ro # 绑定宿主机验证目录
+      - domain_configs:/etc/nginx/conf.d/domains:ro
     depends_on:
       - frontend
       - backend
     networks:
       - app-network
     restart: unless-stopped
+
+  # Certbot 自动化证书申请
+  certbot:
+    image: certbot/certbot:latest
+    container_name: linkify-certbot
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/www/certbot:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - app-network
 
   # MongoDB 数据库
   mongo:
@@ -95,4 +113,6 @@ volumes:
   mongo_data_fix:
     driver: local
   redis_data:
+    driver: local
+  domain_configs:
     driver: local

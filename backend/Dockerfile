@@ -19,6 +19,9 @@ RUN npm prune --production
 
 FROM keymetrics/pm2:18-alpine
 
+# 安装 docker-cli 以便操作其他容器
+RUN apk add --no-cache docker-cli
+
 WORKDIR /app
 
 # Copy from builder
