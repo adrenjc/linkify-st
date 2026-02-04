@@ -7,7 +7,7 @@ const Settings: ProLayoutProps & {
   pwa?: boolean;
 } = {
   navTheme: 'light',
-  colorPrimary: '#722ED1',
+  colorPrimary: '#000000',
   layout: 'mix',
   contentWidth: 'Fluid',
   fixedHeader: true,
@@ -15,22 +15,24 @@ const Settings: ProLayoutProps & {
   colorWeak: false,
   title: 'Linkify',
   pwa: false,
-  logo: 'https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg', // Placeholder, will replace later or generic icon
+  logo: 'https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg', 
   iconfontUrl: '',
   token: {
-    // Premium theme tokens
     pageContainer: {
       paddingBlockPageContainerContent: 24,
       paddingInlinePageContainerContent: 24,
+      colorBgPageContainer: '#fcfcfc',
     },
     sider: {
-      colorMenuBackground: '#fff',
-      colorTextMenu: '#5e6c84',
-      colorTextMenuSelected: '#722ED1',
-      colorBgMenuItemSelected: '#F9F0FF',
+      colorMenuBackground: '#ffffff',
+      colorBgMenuItemSelected: '#f5f5f5',
+      colorTextMenuSelected: '#000000',
+      colorTextMenuItemHover: '#000000',
+      colorTextMenu: '#595959',
     },
     header: {
-      colorBgHeader: 'rgba(255, 255, 255, 0.8)', // Glassmorphism effect preparation
+      colorBgHeader: 'rgba(255, 255, 255, 0.9)',
+      colorHeaderTitle: '#000000',
     }
   },
 };

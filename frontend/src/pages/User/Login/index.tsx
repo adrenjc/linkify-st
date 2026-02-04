@@ -13,133 +13,125 @@ const useStyles = createStyles(() => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%)',
+    background: '#ffffff',
     position: 'relative',
     overflow: 'hidden',
     padding: '20px',
   },
-  bgDecor1: {
+  bgDecor: {
     position: 'absolute',
-    top: '-30%',
-    left: '-10%',
-    width: '60%',
-    height: '60%',
-    borderRadius: '50%',
-    background: 'rgba(114, 46, 209, 0.05)',
-    filter: 'blur(80px)',
-  },
-  bgDecor2: {
-    position: 'absolute',
-    bottom: '-20%',
-    right: '-10%',
-    width: '50%',
-    height: '50%',
-    borderRadius: '50%',
-    background: 'rgba(99, 102, 241, 0.05)',
-    filter: 'blur(60px)',
+    top: '0',
+    left: '0',
+    width: '100%',
+    height: '100%',
+    background: 'radial-gradient(circle at 10% 20%, rgba(0, 0, 0, 0.03) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(0, 0, 0, 0.05) 0%, transparent 40%)',
+    zIndex: 1,
   },
   loginCard: {
     width: '100%',
-    maxWidth: '400px',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: '20px',
-    padding: '40px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.06)',
-    border: '1px solid rgba(255, 255, 255, 0.4)',
+    maxWidth: '420px',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    backdropFilter: 'blur(50px)',
+    borderRadius: '0px', // Square edge for minimalist feel
+    padding: '60px 48px',
+    boxShadow: '0 0 1px rgba(0, 0, 0, 0.1), 0 20px 40px rgba(0, 0, 0, 0.05)',
+    border: '1px solid #000000',
     zIndex: 10,
-    transition: 'box-shadow 0.3s ease',
+    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
     '&:hover': {
-      boxShadow: '0 12px 48px rgba(0, 0, 0, 0.1)',
+      boxShadow: '0 0 1px rgba(0, 0, 0, 0.2), 0 30px 60px rgba(0, 0, 0, 0.1)',
+      transform: 'translateY(-2px)',
     },
   },
-  title: {
-    fontSize: '28px',
-    fontWeight: 700,
-    color: '#1f2937',
+  headerArea: {
     textAlign: 'center',
-    marginBottom: '8px',
+    marginBottom: '48px',
+  },
+  title: {
+    fontSize: '32px',
+    fontWeight: 900,
+    color: '#000000',
+    letterSpacing: '-1.5px',
+    textTransform: 'uppercase',
   },
   subtitle: {
-    fontSize: '14px',
-    color: '#6b7280',
-    textAlign: 'center',
-    marginBottom: '32px',
+    fontSize: '12px',
+    color: '#888888',
+    letterSpacing: '2px',
+    marginTop: '4px',
+    textTransform: 'uppercase',
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '20px',
+    gap: '24px',
   },
   inputGroup: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '6px',
+    gap: '8px',
   },
   label: {
-    fontSize: '13px',
-    fontWeight: 500,
-    color: '#374151',
-    marginLeft: '2px',
+    fontSize: '12px',
+    fontWeight: 600,
+    color: '#000000',
+    textTransform: 'uppercase',
   },
   input: {
     width: '100%',
     padding: '12px 16px',
-    backgroundColor: '#f9fafb',
-    border: '1.5px solid #e5e7eb',
-    borderRadius: '12px',
-    fontSize: '14px',
-    color: '#1f2937',
-    transition: 'all 0.2s ease',
+    backgroundColor: 'transparent',
+    border: 'none',
+    borderBottom: '2px solid #eeeeee',
+    borderRadius: '0',
+    fontSize: '15px',
+    color: '#000000',
+    transition: 'all 0.25s ease',
     outline: 'none',
-    '&:hover': {
-      borderColor: '#d1d5db',
-    },
     '&:focus': {
-      borderColor: '#722ED1',
-      backgroundColor: '#fff',
-      boxShadow: '0 0 0 3px rgba(114, 46, 209, 0.1)',
+      borderBottomColor: '#000000',
     },
     '&::placeholder': {
-      color: '#9ca3af',
+      color: '#cccccc',
     },
   },
   button: {
     width: '100%',
-    padding: '14px',
-    background: 'linear-gradient(135deg, #722ED1 0%, #5b21b6 100%)',
+    padding: '16px',
+    backgroundColor: '#000000',
     border: 'none',
-    borderRadius: '12px',
+    borderRadius: '0',
     color: '#fff',
-    fontSize: '15px',
-    fontWeight: 600,
+    fontSize: '14px',
+    fontWeight: 700,
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    marginTop: '8px',
+    transition: 'all 0.3s ease',
+    marginTop: '12px',
+    textTransform: 'uppercase',
+    letterSpacing: '1px',
     '&:hover': {
-      transform: 'translateY(-1px)',
-      boxShadow: '0 6px 20px rgba(114, 46, 209, 0.3)',
-    },
-    '&:active': {
-      transform: 'translateY(0)',
+      backgroundColor: '#333333',
+      paddingLeft: '20px',
     },
     '&:disabled': {
-      opacity: 0.6,
+      backgroundColor: '#cccccc',
       cursor: 'not-allowed',
-      transform: 'none',
     },
   },
-  footer: {
+  footerText: {
     textAlign: 'center',
-    marginTop: '16px',
-    fontSize: '12px',
-    color: '#9ca3af',
+    marginTop: '24px',
+    fontSize: '11px',
+    color: '#bbbbbb',
+    letterSpacing: '1px',
   },
   copyright: {
     position: 'absolute',
-    bottom: '20px',
-    fontSize: '12px',
-    color: '#9ca3af',
+    bottom: '40px',
+    fontSize: '11px',
+    color: '#dddddd',
+    letterSpacing: '1px',
+    zIndex: 10,
   },
 }));
 
@@ -188,7 +180,7 @@ const Login: React.FC = () => {
     try {
       const result = await login(loginForm);
       if (result.token) {
-        message.success('Welcome back!');
+        message.success('登录成功');
         await fetchUserInfo();
         const urlParams = new URL(window.location.href).searchParams;
         history.push(urlParams.get('redirect') || '/');
@@ -200,64 +192,52 @@ const Login: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.bgDecor1} />
-      <div className={styles.bgDecor2} />
+      <div className={styles.bgDecor} />
       <Helmet>
-        <title>Login - {Settings.title}</title>
+        <title>登录 - {Settings.title}</title>
       </Helmet>
 
       <div className={styles.loginCard}>
-        <div className={styles.title}>Linkify</div>
-        <div className={styles.subtitle}>Enterprise Link Management</div>
+        <div className={styles.headerArea}>
+          <div className={styles.title}>LINKIFY</div>
+          <div className={styles.subtitle}>企业级短链接管理系统</div>
+        </div>
 
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          centered
-          items={[
-            {
-              key: 'login',
-              label: 'Sign In',
-              children: (
-                <form className={styles.form} onSubmit={handleLogin}>
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>Username</label>
-                    <input
-                      type="text"
-                      className={styles.input}
-                      placeholder="Enter your username"
-                      value={loginForm.username}
-                      onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                      required
-                    />
-                  </div>
+        <form className={styles.form} onSubmit={handleLogin}>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>用户名</label>
+            <input
+              type="text"
+              className={styles.input}
+              placeholder="请输入用户名"
+              value={loginForm.username}
+              onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
+              required
+            />
+          </div>
 
-                  <div className={styles.inputGroup}>
-                    <label className={styles.label}>Password</label>
-                    <input
-                      type="password"
-                      className={styles.input}
-                      placeholder="Enter your password"
-                      value={loginForm.password}
-                      onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                      required
-                    />
-                  </div>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>密码</label>
+            <input
+              type="password"
+              className={styles.input}
+              placeholder="请输入密码"
+              value={loginForm.password}
+              onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+              required
+            />
+          </div>
 
-                  <button type="submit" className={styles.button} disabled={loading}>
-                    {loading ? 'Signing in...' : 'Sign In'}
-                  </button>
-                  
-                  <div className={styles.footer}>Secure Enterprise Access</div>
-                </form>
-              ),
-            },
-          ]}
-        />
+          <button type="submit" className={styles.button} disabled={loading}>
+            {loading ? '正在登录...' : '进入系统'}
+          </button>
+          
+          <div className={styles.footerText}>SECURE ACCESS ONLY</div>
+        </form>
       </div>
       
       <div className={styles.copyright}>
-        &copy; {new Date().getFullYear()} Linkify Inc.
+        &copy; {new Date().getFullYear()} LINKIFY INC. / MINIMALIST TECH
       </div>
     </div>
   );
