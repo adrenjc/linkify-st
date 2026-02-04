@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ ENV UMI_APP_ENV=${UMI_APP_ENV}
 RUN yarn build:prod || npm run build:prod
 
 # Production stage - 使用轻量级静态文件服务器
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
