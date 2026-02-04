@@ -84,6 +84,9 @@ server {
     listen 443 ssl http2;
     server_name ${domain};
     
+    # Docker 内部 DNS resolver
+    resolver 127.0.0.11 valid=30s;
+    
     # 路径匹配容器内 nginx 的挂载路径
     ssl_certificate /etc/letsencrypt/live/${domain}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${domain}/privkey.pem;
