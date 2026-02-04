@@ -78,10 +78,12 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
   return {
     // actionsRender: () => [<Question key="doc" />, <SelectLang key="SelectLang" />],
     avatarProps: {
-      // src: initialState?.currentUser?.avatar,
-      title: <AvatarName />,
-      render: (_, avatarChildren) => {
-        return <AvatarDropdown>{avatarChildren}</AvatarDropdown>;
+      render: () => {
+        return (
+          <AvatarDropdown>
+            <AvatarName />
+          </AvatarDropdown>
+        );
       },
     },
     waterMarkProps: {
@@ -95,16 +97,8 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
         history.push(loginPath);
       }
     },
-    // bgLayoutImgList: [], // Clean layout without cartoons
-    links: isDev
-      ? [
-          <Link key="openapi" to="/umi/plugin/openapi" target="_blank">
-            <LinkOutlined />
-            <span>OpenAPI 文档</span>
-          </Link>,
-        ]
-      : [],
     menuHeaderRender: undefined,
+    links: [],
     // 自定义 403 页面
     // unAccessible: <div>unAccessible</div>,
     // 增加一个 loading 的状态

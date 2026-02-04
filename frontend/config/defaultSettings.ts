@@ -15,7 +15,7 @@ const Settings: ProLayoutProps & {
   colorWeak: false,
   title: 'Linkify',
   pwa: false,
-  logo: 'https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg',
+  logo: false as any, 
   iconfontUrl: '',
   token: {
     borderRadius: 4,
