@@ -16,7 +16,7 @@ const useStyles = createStyles(() => ({
     background: '#ffffff',
     position: 'relative',
     overflow: 'hidden',
-    padding: '20px',
+    padding: '24px',
   },
   bgDecor: {
     position: 'absolute',
@@ -24,41 +24,41 @@ const useStyles = createStyles(() => ({
     left: '0',
     width: '100%',
     height: '100%',
-    background: 'radial-gradient(circle at 10% 20%, rgba(0, 0, 0, 0.03) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(0, 0, 0, 0.05) 0%, transparent 40%)',
+    background: 'radial-gradient(circle at 10% 20%, rgba(0, 0, 0, 0.02) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(0, 0, 0, 0.03) 0%, transparent 40%)',
     zIndex: 1,
   },
   loginCard: {
     width: '100%',
-    maxWidth: '420px',
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
-    backdropFilter: 'blur(50px)',
-    borderRadius: '0px', // Square edge for minimalist feel
-    padding: '60px 48px',
-    boxShadow: '0 0 1px rgba(0, 0, 0, 0.1), 0 20px 40px rgba(0, 0, 0, 0.05)',
-    border: '1px solid #000000',
+    maxWidth: '440px',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backdropFilter: 'blur(30px)',
+    borderRadius: '4px', // 与内部页面对齐的微圆角
+    padding: '48px 40px',
+    boxShadow: '0 0 1px rgba(0, 0, 0, 0.1), 0 10px 30px rgba(0, 0, 0, 0.03)',
+    border: '1px solid #f0f0f0', // 柔和的边框
     zIndex: 10,
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+    transition: 'all 0.3s ease',
     '&:hover': {
-      boxShadow: '0 0 1px rgba(0, 0, 0, 0.2), 0 30px 60px rgba(0, 0, 0, 0.1)',
-      transform: 'translateY(-2px)',
+      borderColor: '#000000',
+      boxShadow: '0 0 1px rgba(0, 0, 0, 0.2), 0 20px 40px rgba(0, 0, 0, 0.06)',
     },
   },
   headerArea: {
     textAlign: 'center',
-    marginBottom: '48px',
+    marginBottom: '40px',
   },
   title: {
-    fontSize: '32px',
-    fontWeight: 900,
+    fontSize: '24px',
+    fontWeight: 700,
     color: '#000000',
-    letterSpacing: '-1.5px',
+    letterSpacing: '-0.5px',
     textTransform: 'uppercase',
   },
   subtitle: {
-    fontSize: '12px',
-    color: '#888888',
-    letterSpacing: '2px',
-    marginTop: '4px',
+    fontSize: '11px',
+    color: '#999999',
+    letterSpacing: '1px',
+    marginTop: '6px',
     textTransform: 'uppercase',
   },
   form: {
@@ -74,47 +74,44 @@ const useStyles = createStyles(() => ({
   label: {
     fontSize: '12px',
     fontWeight: 600,
-    color: '#000000',
-    textTransform: 'uppercase',
+    color: '#333333',
   },
   input: {
     width: '100%',
-    padding: '12px 16px',
+    padding: '10px 0',
     backgroundColor: 'transparent',
     border: 'none',
-    borderBottom: '2px solid #eeeeee',
+    borderBottom: '1px solid #e0e0e0',
     borderRadius: '0',
     fontSize: '15px',
     color: '#000000',
-    transition: 'all 0.25s ease',
+    transition: 'all 0.2s ease',
     outline: 'none',
     '&:focus': {
       borderBottomColor: '#000000',
     },
     '&::placeholder': {
-      color: '#cccccc',
+      color: '#d0d0d0',
     },
   },
   button: {
     width: '100%',
-    padding: '16px',
+    padding: '12px',
     backgroundColor: '#000000',
     border: 'none',
-    borderRadius: '0',
+    borderRadius: '4px', // 统一圆角
     color: '#fff',
     fontSize: '14px',
-    fontWeight: 700,
+    fontWeight: 600,
     cursor: 'pointer',
-    transition: 'all 0.3s ease',
+    transition: 'all 0.2s ease',
     marginTop: '12px',
-    textTransform: 'uppercase',
-    letterSpacing: '1px',
     '&:hover': {
       backgroundColor: '#333333',
-      paddingLeft: '20px',
+      transform: 'translateY(-1px)',
     },
     '&:disabled': {
-      backgroundColor: '#cccccc',
+      backgroundColor: '#e0e0e0',
       cursor: 'not-allowed',
     },
   },
@@ -122,15 +119,14 @@ const useStyles = createStyles(() => ({
     textAlign: 'center',
     marginTop: '24px',
     fontSize: '11px',
-    color: '#bbbbbb',
-    letterSpacing: '1px',
+    color: '#bfbfbf',
   },
   copyright: {
     position: 'absolute',
-    bottom: '40px',
+    bottom: '32px',
     fontSize: '11px',
-    color: '#dddddd',
-    letterSpacing: '1px',
+    color: '#cccccc',
+    letterSpacing: '0.5px',
     zIndex: 10,
   },
 }));
@@ -180,11 +176,13 @@ const Login: React.FC = () => {
     try {
       const result = await login(loginForm);
       if (result.token) {
-        message.success('登录成功');
+        message.success('欢迎回来');
         await fetchUserInfo();
         const urlParams = new URL(window.location.href).searchParams;
         history.push(urlParams.get('redirect') || '/');
       }
+    } catch (error) {
+       // handled by request middleware usually
     } finally {
       setLoading(false);
     }
@@ -200,12 +198,12 @@ const Login: React.FC = () => {
       <div className={styles.loginCard}>
         <div className={styles.headerArea}>
           <div className={styles.title}>LINKIFY</div>
-          <div className={styles.subtitle}>企业级短链接管理系统</div>
+          <div className={styles.subtitle}> minimalist link management </div>
         </div>
 
         <form className={styles.form} onSubmit={handleLogin}>
           <div className={styles.inputGroup}>
-            <label className={styles.label}>用户名</label>
+            <label className={styles.label}>账号</label>
             <input
               type="text"
               className={styles.input}
@@ -229,15 +227,15 @@ const Login: React.FC = () => {
           </div>
 
           <button type="submit" className={styles.button} disabled={loading}>
-            {loading ? '正在登录...' : '进入系统'}
+            {loading ? '处理中...' : '登 录'}
           </button>
           
-          <div className={styles.footerText}>SECURE ACCESS ONLY</div>
+          <div className={styles.footerText}> 安全企业访问控制 </div>
         </form>
       </div>
       
       <div className={styles.copyright}>
-        &copy; {new Date().getFullYear()} LINKIFY INC. / MINIMALIST TECH
+        &copy; {new Date().getFullYear()} LINKIFY / MONOCHROME DESIGN
       </div>
     </div>
   );

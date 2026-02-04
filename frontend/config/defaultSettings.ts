@@ -15,25 +15,27 @@ const Settings: ProLayoutProps & {
   colorWeak: false,
   title: 'Linkify',
   pwa: false,
-  logo: 'https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg', 
+  logo: 'https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg',
   iconfontUrl: '',
   token: {
+    borderRadius: 4,
     pageContainer: {
-      paddingBlockPageContainerContent: 24,
+      paddingBlockPageContainerContent: 16,
       paddingInlinePageContainerContent: 24,
-      colorBgPageContainer: '#fcfcfc',
+      colorBgPageContainer: '#ffffff', // 统一背景色
     },
     sider: {
       colorMenuBackground: '#ffffff',
-      colorBgMenuItemSelected: '#f5f5f5',
+      colorBgMenuItemSelected: '#f7f7f7',
       colorTextMenuSelected: '#000000',
       colorTextMenuItemHover: '#000000',
-      colorTextMenu: '#595959',
+      colorTextMenu: '#8c8c8c',
     },
     header: {
-      colorBgHeader: 'rgba(255, 255, 255, 0.9)',
+      colorBgHeader: '#ffffff',
       colorHeaderTitle: '#000000',
-    }
+      colorTextMenuSelected: '#000000',
+    },
   },
 };
 
