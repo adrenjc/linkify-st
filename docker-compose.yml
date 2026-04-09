@@ -79,7 +79,7 @@ services:
   mongo:
     image: mongo:latest
     container_name: linkify-mongo
-    command: [mongod, --auth, --wiredTigerCacheSizeGB, "0.25"]
+    command: [mongod, --auth]
     ports:
       - "127.0.0.1:27018:27017" # 暴露端口给宿主机后端连接 (改为27018避免冲突)
     volumes:
