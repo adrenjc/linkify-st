@@ -1,5 +1,18 @@
 const mongoose = require("mongoose")
 
+const parsePoolSize = (value, fallback) => {
+  const parsed = Number.parseInt(value, 10)
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback
+}
+
+const mongoMaxPoolSize = parsePoolSize(process.env.MONGO_MAX_POOL_SIZE, 10)
+const mongoMinPoolSize = Math.min(
+  parsePoolSize(process.env.MONGO_MIN_POOL_SIZE, 0),
+  mongoMaxPoolSize
+)
+const enableMongoCommandMonitoring =
+  process.env.MONGO_MONITOR_COMMANDS === "true"
+
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
@@ -8,9 +21,9 @@ const connectDB = async () => {
 
       // 连接池配置
 
-      maxPoolSize: 100, // 根据服务器内存调整
+      maxPoolSize: mongoMaxPoolSize, // 默认降低空闲连接占用
 
-      minPoolSize: 20, // 保持更多活跃连接
+      minPoolSize: mongoMinPoolSize, // 非高并发场景尽量按需建立连接
 
       // 超时配置
 
@@ -19,6 +32,8 @@ const connectDB = async () => {
       connectTimeoutMS: 10000,
 
       serverSelectionTimeoutMS: 5000,
+
+      maxIdleTimeMS: 30000,
 
       // 写入配置
 
@@ -32,11 +47,10 @@ const connectDB = async () => {
 
       // 监控和调试
 
-      monitorCommands: true, // 监控数据库命令
+      monitorCommands: enableMongoCommandMonitoring,
 
       // 事务相关配置需配合 Replica Set 使用，当前配置为单机/混合模式兼容
-      retryWrites: true,
-      w: "majority",
+      retryWrites: false,
     })
 
     console.log("MongoDB Connected")

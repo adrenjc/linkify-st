@@ -29,16 +29,18 @@ mongoose.connection.on("connected", () => {
   console.log("MongoDB 连接成功")
 })
 
-// 监控慢查询
-mongoose.set("debug", (collectionName, method, query, doc) => {
-  const start = Date.now()
-  return () => {
-    const time = Date.now() - start
-    if (time > 100) {
-      console.warn(`慢查询: ${collectionName}.${method} (${time}ms)`, query)
+if (process.env.MONGOOSE_DEBUG === "true") {
+  // 监控慢查询
+  mongoose.set("debug", (collectionName, method, query, doc) => {
+    const start = Date.now()
+    return () => {
+      const time = Date.now() - start
+      if (time > 100) {
+        console.warn(`慢查询: ${collectionName}.${method} (${time}ms)`, query)
+      }
     }
-  }
-})
+  })
+}
 
 // 路由
 app.use("/api", router)

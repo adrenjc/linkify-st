@@ -16,7 +16,35 @@ const {
 } = require("../utils/formatter")
 const { PERMISSION_CODES } = require("../constants/permissions")
 const { escapeRegExp } = require("../utils/escapeRegExp")
-const geoip = require("geoip-lite")
+
+let geoip = null
+let geoipLoadAttempted = false
+
+const isGeoIpEnabled = () =>
+  String(process.env.ENABLE_GEOIP ?? "true").toLowerCase() === "true"
+
+const lookupGeoInfo = (clientIp) => {
+  if (!isGeoIpEnabled() || !clientIp || clientIp === "unknown") {
+    return null
+  }
+
+  if (!geoipLoadAttempted) {
+    geoipLoadAttempted = true
+    try {
+      geoip = require("geoip-lite")
+    } catch (error) {
+      console.error("加载 geoip-lite 失败，已跳过地理位置解析:", error)
+      return null
+    }
+  }
+
+  try {
+    return geoip?.lookup(clientIp) || null
+  } catch (error) {
+    console.error("IP 地理位置解析失败:", error)
+    return null
+  }
+}
 
 const generateShortKey = (longUrl) => {
   // 使用时间戳和长链接生成短链接
@@ -356,8 +384,7 @@ const redirectToLongLink = async (req, res) => {
     }
 
     const clientIp = getClientIp(req)
-    const geoInfo =
-      clientIp && clientIp !== "unknown" ? geoip.lookup(clientIp) : null
+    const geoInfo = lookupGeoInfo(clientIp)
     const countryCode = geoInfo?.country || "UNKNOWN"
     const regionCode = geoInfo?.region || null
     const cityName = geoInfo?.city || null

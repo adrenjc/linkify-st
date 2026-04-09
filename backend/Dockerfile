@@ -17,7 +17,7 @@ RUN npm prune --production
 
 # ---
 
-FROM keymetrics/pm2:18-alpine
+FROM node:18-alpine
 
 # 安装 docker-cli 以便操作其他容器
 RUN apk add --no-cache docker-cli
@@ -31,12 +31,8 @@ COPY --from=builder /app .
 # Create logs directory
 RUN mkdir -p /logs
 
-# Expose port (ecosystem.config.js uses 8080 by default in env, but compose expects 5000? Let's check deploy.sh/compose)
-# deploy.sh says "后端 API 地址: http://localhost:5000" and upstream is 5000. 
-# ecosystem.config.js sets PORT: 8080. This is a mismatch.
-# I will override PORT in Docker ENV to 5000 to match expectation.
+ENV NODE_ENV=production
 ENV PORT=5000
 EXPOSE 5000
 
-# Start with pm2-runtime
-CMD ["pm2-runtime", "start", "ecosystem.config.js"]
+CMD ["node", "--max-old-space-size=384", "server.js"]
